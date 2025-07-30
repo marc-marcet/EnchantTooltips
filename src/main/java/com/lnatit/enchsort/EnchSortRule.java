@@ -1,24 +1,37 @@
 package com.lnatit.enchsort;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class EnchSortRule {
     public static void sortDefault(final ItemTooltipEvent event) {
         //noinspection DataFlowIssue -> registry shoudl be present
         List<Object2IntMap.Entry<Holder<Enchantment>>> sorted = Utils.getSortedEnchantments(event.getItemStack(), event.getContext().registries().lookupOrThrow(Registries.ENCHANTMENT));
 
+        if (sorted.isEmpty()) {
+            return;
+        }
+
         int index;
+        boolean foundEnchantment = false;
         List<Component> tooltips = event.getToolTip();
 
         // Find index of the start of the enchantment tooltip
@@ -26,8 +39,6 @@ public class EnchSortRule {
             Component line = tooltips.get(index);
 
             if (line.getContents() instanceof TranslatableContents contents) {
-                boolean foundEnchantment = false;
-
                 for (Object2IntMap.Entry<Holder<Enchantment>> enchantment : sorted) {
                     if (contents.equals(enchantment.getKey().value().description().getContents())) {
                         foundEnchantment = true;
@@ -41,10 +52,44 @@ public class EnchSortRule {
             }
         }
 
+        // In this case the enchantment is not using a translation
+        // Since that is unlikely we can normally skip checking these tooltip entries
+        if (!foundEnchantment) {
+            for (index = 1; index < tooltips.size(); index++) {
+                Component line = tooltips.get(index);
+
+                if (line.getContents() instanceof PlainTextContents contents) {
+                    for (Object2IntMap.Entry<Holder<Enchantment>> enchantment : sorted) {
+                        if (contents.equals(enchantment.getKey().value().description().getContents())) {
+                            foundEnchantment = true;
+                            break;
+                        }
+                    }
+
+                    if (foundEnchantment) {
+                        break;
+                    }
+                }
+            }
+        }
+
         boolean handleDescriptions = EnchSort.ENCHANTMENT_DESCRIPTIONS || ClientConfig.HANDLE_DESCRIPTION.get();
 
         // Remove existing enchantment tooltips
-        int toRemove = index + (handleDescriptions ? sorted.size() * 2 : sorted.size());
+        int toRemove = index;
+
+        for (Object2IntMap.Entry<Holder<Enchantment>> entry : sorted) {
+            //noinspection DataFlowIssue -> key is present
+            ResourceLocation resource = entry.getKey().getKey().location();
+
+            // TODO :: cache this - need to clear cache on resource reload?
+            if (handleDescriptions && I18n.exists("enchantment." + resource.getNamespace() + "." + resource.getPath() + ".desc")) {
+                // It's not guaranteed that all enchantments have a description
+                toRemove++;
+            }
+
+            toRemove++;
+        }
 
         if (toRemove > tooltips.size()) {
             EnchSort.LOGGER.warn("Some tooltips are missing - try using the [compatible] mode");
