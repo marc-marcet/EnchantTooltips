@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class EnchSortRule {
     public static void sortDefault(final ItemTooltipEvent event) {
-        //noinspection DataFlowIssue -> registry shoudl be present
+        //noinspection DataFlowIssue -> registry should be present
         List<Object2IntMap.Entry<Holder<Enchantment>>> sorted = Utils.getSortedEnchantments(event.getItemStack(), event.getContext().registries().lookupOrThrow(Registries.ENCHANTMENT));
 
         if (sorted.isEmpty()) {
@@ -34,7 +34,7 @@ public class EnchSortRule {
         boolean foundEnchantment = false;
         List<Component> tooltips = event.getToolTip();
 
-        // Find index of the start of the enchantment tooltip
+        // Find the starting index of the enchantment tooltip
         for (index = 1; index < tooltips.size(); index++) {
             Component line = tooltips.get(index);
 
@@ -128,8 +128,8 @@ public class EnchSortRule {
         }
     }
 
-    @SuppressWarnings("DataFlowIssue") // enchantment registry should be present
     public static void sortCompatible(final ItemTooltipEvent event) {
+        //noinspection DataFlowIssue -> enchantment registry should be present
         List<Object2IntMap.Entry<Holder<Enchantment>>> sorted = Utils.getSortedEnchantments(event.getItemStack(), event.getContext().registries().lookupOrThrow(Registries.ENCHANTMENT));
 
         // Stores the current enchantment indexes and components
@@ -290,7 +290,7 @@ public class EnchSortRule {
 
                 // Reverse = they start at the top
                 if (isFirstTreasure && !isSecondTreasure) {
-                    return ClientConfig.REVERSE_TREASURE.get() ? 1 : -1;
+                    return ClientConfig.REVERSE_TREASURE.get() ? -1 : 1;
                 }
 
                 if (!isFirstTreasure && isSecondTreasure) {

@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.165'
+    id 'net.neoforged.gradle.userdev' version '7.0.190'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -15,7 +15,8 @@ group = mod_group_id
 
 repositories {
     mavenCentral()
-    maven { url = "https://www.cursemaven.com" } // CurseForge
+    maven { url "https://www.cursemaven.com" }
+    maven { url "https://api.modrinth.com/maven" }
 }
 
 base {
@@ -65,14 +66,20 @@ dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
 
     /* --- Compatibility --- */
-    implementation "curse.maven:apothic-enchanting-1063926:5787344" // 1.2.3
-    implementation "curse.maven:apothic-attributes-898963:5751458" // 2.4.0
-    implementation "curse.maven:placebo-283644:5751511" // 9.5.3
+    compileOnly "curse.maven:apothic-enchanting-1063926:5787344" // 1.2.3
+    compileOnly "curse.maven:apothic-attributes-898963:5751458" // 2.4.0
+    compileOnly "curse.maven:placebo-283644:5751511" // 9.5.3
 
     /* --- Test --- */
     implementation "curse.maven:enchantment-descriptions-250419:5793919" // 21.1.4
     implementation "curse.maven:bookshelf-228525:5799640" // 21.1.10
     implementation "curse.maven:prickle-1023259:5780848" // 21.1.4
+
+    // FIXME :: 'johnsmith.enchantingoverhauled.mixin.component.type.ItemEnchantmentsMixin' breaks tooltips
+    implementation "maven.modrinth:enchanting-overhauled:CIetGnhb" // 2.1.5
+
+    implementation "curse.maven:obscure-tooltips-715660:7271512" // 4.1.0
+    implementation "curse.maven:fragmentum-neoforge-1123977:7271478" // 2.0.19
 
     /* --- Dependencies --- */
     jarJar(implementation 'com.moandjiezana.toml:toml4j:0.7.2', {
