@@ -83,7 +83,11 @@ public class EnchSortRule {
             ResourceLocation resource = entry.getKey().getKey().location();
 
             // TODO :: cache this - need to clear cache on resource reload?
-            if (handleDescriptions && I18n.exists("enchantment." + resource.getNamespace() + "." + resource.getPath() + ".desc")) {
+            if (handleDescriptions && (
+                    I18n.exists("enchantment." + resource.getNamespace() + "." + resource.getPath() + ".desc")
+                            // Some mods use a different translation key than the actual enchantment
+                            || entry.getKey().value().description().getContents() instanceof TranslatableContents translatable && I18n.exists(translatable.getKey() + ".desc")
+            )) {
                 // It's not guaranteed that all enchantments have a description
                 toRemove++;
             }
