@@ -4,14 +4,13 @@ import com.moandjiezana.toml.Toml;
 import com.moandjiezana.toml.TomlWriter;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
-import org.apache.commons.lang3.text.WordUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,7 +34,7 @@ public class TomlHandler {
 
     @SubscribeEvent
     public static void initializeRules(final TagsUpdatedEvent event) {
-        Registry<Enchantment> registry = event.getRegistryAccess().registryOrThrow(Registries.ENCHANTMENT);
+        Registry<Enchantment> registry = event.getRegistries().lookupOrThrow(Registries.ENCHANTMENT);
         RULE_FILE = FMLPaths.CONFIGDIR.get().resolve(FILE_NAME).toFile();
 
         try {
@@ -81,18 +80,43 @@ public class TomlHandler {
 
             String formatted = location.getNamespace() + " - " + location.getPath();
             formatted = formatted.replace("_", " ");
-            defaultSequence.put(WordUtils.capitalize(formatted), element);
+            defaultSequence.put(capitalizeWords(formatted), element);
         });
 
         writer.write(defaultSequence, RULE_FILE);
     }
 
-    private static int compareResource(final ResourceLocation first, final ResourceLocation second) {
-        if (first.getNamespace().startsWith(ResourceLocation.DEFAULT_NAMESPACE)) {
+    /**
+     * Capitalizes the first letter of each whitespace-separated word in the input string.
+     * Replacement for the deprecated {@code org.apache.commons.lang3.text.WordUtils.capitalize}.
+     */
+    private static String capitalizeWords(final String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        StringBuilder sb = new StringBuilder(str.length());
+        boolean capitalizeNext = true;
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (Character.isWhitespace(c)) {
+                capitalizeNext = true;
+                sb.append(c);
+            } else if (capitalizeNext) {
+                sb.append(Character.toTitleCase(c));
+                capitalizeNext = false;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static int compareResource(final Identifier first, final Identifier second) {
+        if (first.getNamespace().startsWith(Identifier.DEFAULT_NAMESPACE)) {
             return -1;
         }
 
-        if (second.getNamespace().startsWith(ResourceLocation.DEFAULT_NAMESPACE)) {
+        if (second.getNamespace().startsWith(Identifier.DEFAULT_NAMESPACE)) {
             return 1;
         }
 
@@ -127,7 +151,7 @@ public class TomlHandler {
         }
 
         public int getCustomMaxLevel() {
-            return -1;
+            return customMaxLevel;
         }
     }
 }

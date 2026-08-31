@@ -28,6 +28,7 @@ public class ClientConfig {
     public static ModConfigSpec.ConfigValue<String> CURSE_FORMAT;
 
     public static ModConfigSpec.BooleanValue SHOW_MAX_LEVEL;
+    public static ModConfigSpec.BooleanValue HIDE_WHEN_MAXED;
     public static ModConfigSpec.ConfigValue<String> MAX_LEVEL_FORMAT;
     public static ModConfigSpec.ConfigValue<String> MAX_LEVEL_INFO_FORMAT;
 
@@ -37,6 +38,7 @@ public class ClientConfig {
     public static Style CURSE_STYLE = Style.EMPTY.withColor(ChatFormatting.DARK_RED);
 
     public static ModConfigSpec.BooleanValue HANDLE_DESCRIPTION;
+    public static ModConfigSpec.BooleanValue HIDE_DESCRIPTION;
 
     static {
         ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
@@ -66,6 +68,11 @@ public class ClientConfig {
                 .comment(" Properly sort the tooltip if enchantment descriptions are present",
                         " (Only needed if you notice issues)")
                 .define("handle_description", false);
+
+        HIDE_DESCRIPTION = BUILDER
+                .comment(" Hide enchantment description lines added by other mods.",
+                        " Only applies when descriptions are detected in the tooltip")
+                .define("hide_description", false);
 
         BUILDER.push("Treasure");
         INDEPENDENT_TREASURE = BUILDER
@@ -102,6 +109,10 @@ public class ClientConfig {
                 .comment(" Show the max level of the enchantments")
                 .define("show_max_level", true);
 
+        HIDE_WHEN_MAXED = BUILDER
+                .comment(" Hide the max level when the enchantment is already at its max level")
+                .define("hide_when_maxed", true);
+
         MAX_LEVEL_FORMAT = BUILDER
                 .comment(" The style to be used for enchantments that reached max. level",
                         " Define the style data in the 'key:value,key:value' format")
@@ -125,18 +136,18 @@ public class ClientConfig {
         CompoundTag tag = (CompoundTag) Style.Serializer.CODEC.encodeStart(NbtOps.INSTANCE, style).getOrThrow();
         StringBuilder builder = new StringBuilder();
 
-        tag.getAllKeys().forEach(key -> {
+        tag.keySet().forEach(key -> {
             if (!builder.isEmpty()) {
                 builder.append(",");
             }
 
             String entry = switch (key) {
-                case "color" -> tag.getString(key);
-                case "bold" -> String.valueOf(tag.getBoolean(key));
-                case "italic" -> String.valueOf(tag.getBoolean(key));
-                case "underlined" -> String.valueOf(tag.getBoolean(key));
-                case "strikethrough" -> String.valueOf(tag.getBoolean(key));
-                case "obfuscated" -> String.valueOf(tag.getBoolean(key));
+                case "color" -> tag.getStringOr(key, "");
+                case "bold" -> String.valueOf(tag.getBooleanOr(key, false));
+                case "italic" -> String.valueOf(tag.getBooleanOr(key, false));
+                case "underlined" -> String.valueOf(tag.getBooleanOr(key, false));
+                case "strikethrough" -> String.valueOf(tag.getBooleanOr(key, false));
+                case "obfuscated" -> String.valueOf(tag.getBooleanOr(key, false));
                 default -> "";
             };
 

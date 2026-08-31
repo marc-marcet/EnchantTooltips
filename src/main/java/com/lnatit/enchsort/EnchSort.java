@@ -1,9 +1,9 @@
 package com.lnatit.enchsort;
 
 import com.mojang.logging.LogUtils;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.world.item.EnchantedBookItem;
+import net.minecraft.client.Minecraft;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
@@ -44,11 +44,11 @@ public class EnchSort {
             return;
         }
 
-        if (SNEAK_DISPLAY.get() && Screen.hasShiftDown()) {
+        if (SNEAK_DISPLAY.get() && Minecraft.getInstance().hasShiftDown()) {
             return;
         }
 
-        boolean isEnchantedBook = stack.getItem() instanceof EnchantedBookItem;
+        boolean isEnchantedBook = stack.is(Items.ENCHANTED_BOOK);
 
         if (!ClientConfig.SORT_BOOKS.get() && isEnchantedBook || !isEnchantedBook && !stack.isEnchanted()) {
             return;

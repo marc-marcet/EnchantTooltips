@@ -9,7 +9,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.contents.PlainTextContents;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import org.jetbrains.annotations.Nullable;
@@ -80,7 +80,7 @@ public class EnchSortRule {
 
         for (Object2IntMap.Entry<Holder<Enchantment>> entry : sorted) {
             //noinspection DataFlowIssue -> key is present
-            ResourceLocation resource = entry.getKey().getKey().location();
+            Identifier resource = entry.getKey().getKey().identifier();
 
             // TODO :: cache this - need to clear cache on resource reload?
             if (handleDescriptions && (
@@ -122,7 +122,7 @@ public class EnchSortRule {
             Component component = getEnchantmentTooltip(entry);
             tooltips.add(index++, component);
 
-            if (!descriptions.isEmpty() && component.getContents() instanceof TranslatableContents contents) {
+            if (!ClientConfig.HIDE_DESCRIPTION.get() && !descriptions.isEmpty() && component.getContents() instanceof TranslatableContents contents) {
                 Component description = descriptions.remove(contents.getKey());
 
                 if (description != null) {
@@ -185,7 +185,12 @@ public class EnchSortRule {
                 Component description = descriptions.get(contents.getKey());
 
                 if (description != null) {
-                    tooltips.set(indexes.get(index) + 1, description);
+                    if (ClientConfig.HIDE_DESCRIPTION.get()) {
+                        // Replace the description line with an empty component to hide it
+                        tooltips.set(indexes.get(index) + 1, Component.empty());
+                    } else {
+                        tooltips.set(indexes.get(index) + 1, description);
+                    }
                 }
             }
         }
@@ -228,7 +233,7 @@ public class EnchSortRule {
         }
 
         if (level != 1 || maxLevel != 1) {
-            if (ClientConfig.SHOW_MAX_LEVEL.get()) {
+            if (ClientConfig.SHOW_MAX_LEVEL.get() && !(ClientConfig.HIDE_WHEN_MAXED.get() && level == maxLevel)) {
                 Component maxLvl = Component
                         .literal("/")
                         .append(Component.translatable("enchantment.level." + maxLevel))

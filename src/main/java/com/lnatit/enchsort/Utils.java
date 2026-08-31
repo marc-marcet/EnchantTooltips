@@ -6,8 +6,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.EnchantmentTags;
-import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
@@ -43,7 +43,7 @@ public class Utils {
     public static List<Object2IntMap.Entry<Holder<Enchantment>>> getSortedEnchantments(final ItemStack stack, final HolderLookup.RegistryLookup<Enchantment> lookup) {
         ItemEnchantments enchantments;
 
-        if (stack.getItem() instanceof EnchantedBookItem) {
+        if (stack.is(Items.ENCHANTED_BOOK)) {
             enchantments = stack.get(DataComponents.STORED_ENCHANTMENTS);
         } else {
             enchantments = stack.getAllEnchantments(lookup);

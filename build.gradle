@@ -3,7 +3,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id 'maven-publish'
-    id 'net.neoforged.gradle.userdev' version '7.0.190'
+    id 'net.neoforged.moddev' version '2.0.144'
 }
 
 tasks.named('wrapper', Wrapper).configure {
@@ -23,68 +23,58 @@ base {
     archivesName = mod_id
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
-runs {
-    configureEach {
-        systemProperty 'forge.logging.markers', 'REGISTRIES'
-        systemProperty 'forge.logging.console.level', 'debug'
-        modSource project.sourceSets.main
+neoForge {
+    version = project.neo_version
 
-        // Needed when 'minecraftLibrary' was previously used
-        dependencies {
-            runtime 'com.moandjiezana.toml:toml4j:0.7.2', {
-                exclude module: 'gson'
-            }
+    runs {
+        configureEach {
+            systemProperty 'forge.logging.markers', 'REGISTRIES'
+            systemProperty 'forge.logging.console.level', 'debug'
+        }
+
+        client {
+            client()
+            systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        server {
+            server()
+            systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
+        }
+
+        data {
+            data()
+            programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
         }
     }
 
-    client {
-        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
-    }
-
-    server {
-        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
-    }
-
-    gameTestServer {
-        systemProperty 'forge.enabledGameTestNamespaces', project.mod_id
-    }
-
-    data {
-        programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+    mods {
+        enchsort {
+            sourceSet sourceSets.main
+        }
     }
 }
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-configurations {
-    runtimeClasspath.extendsFrom localRuntime
-}
-
 dependencies {
-    implementation "net.neoforged:neoforge:${neo_version}"
-
-    /* --- Compatibility --- */
-    compileOnly "curse.maven:apothic-enchanting-1063926:5787344" // 1.2.3
-    compileOnly "curse.maven:apothic-attributes-898963:5751458" // 2.4.0
-    compileOnly "curse.maven:placebo-283644:5751511" // 9.5.3
-
-    /* --- Test --- */
-    implementation "curse.maven:enchantment-descriptions-250419:5793919" // 21.1.4
-    implementation "curse.maven:bookshelf-228525:5799640" // 21.1.10
-    implementation "curse.maven:prickle-1023259:5780848" // 21.1.4
-
-    // FIXME :: 'johnsmith.enchantingoverhauled.mixin.component.type.ItemEnchantmentsMixin' breaks tooltips
-    implementation "maven.modrinth:enchanting-overhauled:CIetGnhb" // 2.1.5
-
-    implementation "curse.maven:obscure-tooltips-715660:7271512" // 4.1.0
-    implementation "curse.maven:fragmentum-neoforge-1123977:7271478" // 2.0.19
-
     /* --- Dependencies --- */
-    jarJar(implementation 'com.moandjiezana.toml:toml4j:0.7.2', {
+    implementation('com.moandjiezana.toml:toml4j:0.7.2') {
         exclude module: 'gson'
-    })
+    }
+    jarJar('com.moandjiezana.toml:toml4j:[0.7,1.0)') {
+        version {
+            strictly '[0.7,1.0)'
+            prefer '0.7.2'
+        }
+        exclude module: 'gson'
+    }
+
+    /* --- Optional Compatibility --- */
+    // Apothic Enchanting (compile-time only; resolved at runtime via the mod's mods.toml dependency)
+    compileOnly("maven.modrinth:apothic-enchanting:26.1.2-2.0.0")
 }
 
 tasks.withType(ProcessResources).configureEach {

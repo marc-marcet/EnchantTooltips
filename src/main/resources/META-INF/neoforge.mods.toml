@@ -23,3 +23,11 @@ type = "required"
 versionRange = "${minecraft_version_range}"
 ordering = "NONE"
 side = "CLIENT"
+
+# Optional: Apothic Enchanting integration (raises max enchantment levels)
+[[dependencies.${ mod_id }]]
+modId = "apothic_enchanting"
+type = "optional"
+versionRange = "[2.0.0,)"
+ordering = "NONE"
+side = "CLIENT"
